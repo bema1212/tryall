@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       }),
       fetchWithErrorHandling(apiUrl2, { headers: { 'Content-Type': 'application/json' } }),
       fetchWithErrorHandling(apiUrl5, { headers: { 'Content-Type': 'application/json' } }),
-      fetchWithErrorHandling(apiUrl8, { headers: { 'Content-Type': 'application/json' } });
+      fetchWithErrorHandling(apiUrl8, { headers: { 'Content-Type': 'application/json' } })
 
 
     
