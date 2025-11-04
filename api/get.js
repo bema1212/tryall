@@ -43,7 +43,8 @@ export default async function handler(req, res) {
         }
       }),
       fetchWithErrorHandling(apiUrl2, { headers: { 'Content-Type': 'application/json' } }),
-      fetchWithErrorHandling(apiUrl5, { headers: { 'Content-Type': 'application/json' } })
+      fetchWithErrorHandling(apiUrl5, { headers: { 'Content-Type': 'application/json' } }),
+       
     ]);
 
     // Extract coordinates from target2 (assumed to be in format "x,y")
@@ -125,7 +126,7 @@ export default async function handler(req, res) {
   .filter(item => item !== null); // Remove any null (error or missing) entries
 
  const apiUrl8 = `https://yxorp-pi.vercel.app/api/handler?url=https://nationaalenergielabel.com/_next/data/INvAVGHNI6bLrkG05py1s/adrescheck.json?id=${target1}`;
-    const response8 = await fetchWithErrorHandling(apiUrl6, { headers: { 'Content-Type': 'application/json' } });
+    const response8 = await fetchWithErrorHandling(apiUrl8, { headers: { 'Content-Type': 'application/json' } });
 
 
     const data8 = response8;
