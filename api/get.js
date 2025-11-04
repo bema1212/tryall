@@ -20,6 +20,7 @@ export default async function handler(req, res) {
     const apiUrl2 = `https://opendata.polygonentool.nl/wfs?service=wfs&version=2.0.0&request=getfeature&typename=se:OGC_Warmtevlak,se:OGC_Elektriciteitnetbeheerdervlak,se:OGC_Gasnetbeheerdervlak,se:OGC_Telecomvlak,se:OGC_Waternetbeheerdervlak,se:OGC_Rioleringsvlakken&propertyname=name,disciplineCode&outputformat=application/json&&SRSNAME=urn:ogc:def:crs:EPSG::28992&bbox=${target3}`;
     const encodedTarget1 = encodeURIComponent(target1);
     const apiUrl5 = `https://service.pdok.nl/lv/bag/wfs/v2_0?service=wfs&version=2.0.0&request=getfeature&typeName=bag:verblijfsobject&outputformat=application/json&srsName=EPSG:4326&filter=%3Cfes:Filter%20xmlns:fes=%22http://www.opengis.net/fes/2.0%22%20xmlns:xsi=%22http://www.w3.org/2001/XMLSchema-instance%22%20xsi:schemaLocation=%22http://www.opengis.net/wfs/2.0%20http://schemas.opengis.net/wfs/2.0/wfs.xsd%22%3E%3Cfes:PropertyIsEqualTo%3E%3Cfes:PropertyName%3Eidentificatie%3C/fes:PropertyName%3E%3Cfes:Literal%3E${encodedTarget1}%3C/fes:Literal%3E%3C/fes:PropertyIsEqualTo%3E%3C/fes:Filter%3E`;
+ const apiUrl8 = `https://yxorp-pi.vercel.app/api/handler?url=https://nationaalenergielabel.com/_next/data/INvAVGHNI6bLrkG05py1s/adrescheck.json?id=${target1}`;
 
     const fetchWithErrorHandling = async (url, options = {}) => {
       try {
@@ -34,7 +35,7 @@ export default async function handler(req, res) {
       }
     };
 
-    const [data0, data1, data2, data5] = await Promise.all([
+    const [data0, data1, data2, data5,data8] = await Promise.all([
       fetchWithErrorHandling(apiUrl0, { headers: { 'Content-Type': 'application/json' } }),
       fetchWithErrorHandling(apiUrl1, {
         headers: {
@@ -44,6 +45,10 @@ export default async function handler(req, res) {
       }),
       fetchWithErrorHandling(apiUrl2, { headers: { 'Content-Type': 'application/json' } }),
       fetchWithErrorHandling(apiUrl5, { headers: { 'Content-Type': 'application/json' } }),
+      fetchWithErrorHandling(apiUrl8, { headers: { 'Content-Type': 'application/json' } });
+
+
+    
        
     ]);
 
@@ -125,11 +130,7 @@ export default async function handler(req, res) {
   })
   .filter(item => item !== null); // Remove any null (error or missing) entries
 
- const apiUrl8 = `https://yxorp-pi.vercel.app/api/handler?url=https://nationaalenergielabel.com/_next/data/INvAVGHNI6bLrkG05py1s/adrescheck.json?id=${target1}`;
-    const response8 = await fetchWithErrorHandling(apiUrl8, { headers: { 'Content-Type': 'application/json' } });
-
-
-    const data8 = response8;
+   
 
     const combinedData = {
       LOOKUP: data0,
