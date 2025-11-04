@@ -124,6 +124,11 @@ export default async function handler(req, res) {
   })
   .filter(item => item !== null); // Remove any null (error or missing) entries
 
+ const apiUrl8 = `https://yxorp-pi.vercel.app/api/handler?url=https://nationaalenergielabel.com/_next/data/INvAVGHNI6bLrkG05py1s/adrescheck.json?id=${target1}`;
+    const response8 = await fetchWithErrorHandling(apiUrl6, { headers: { 'Content-Type': 'application/json' } });
+
+
+    const data8 = response8;
 
     const combinedData = {
       LOOKUP: data0,
@@ -131,12 +136,52 @@ export default async function handler(req, res) {
       NETB: data2,
       KADAS: data3,
       OBJECT: data5,
+      NATLAB: data8,
       MERGED: mergedData, // Only includes successful data
       // niet toevoegen, onnodige data PAND: data6 // Include data from the new request
     };
 
-    // The response now only sends the combinedData JSON object.
-    res.status(200).json(combinedData);
+ // Fetch raw XML with retry logic
+    const apiUrl7 = `https://yxorp-pi.vercel.app/api/handler?url=https://pico.geodan.nl/cgi-bin/qgis_mapserv.fcgi?DPI=120&map=/usr/lib/cgi-bin/projects/gebouw_woningtype.qgs&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&CRS=EPSG%3A28992&WIDTH=937&HEIGHT=842&LAYERS=gebouw&STYLES=&FORMAT=image%2Fjpeg&QUERY_LAYERS=gebouw&INFO_FORMAT=text/xml&I=611&J=469&FEATURE_COUNT=10&bbox=${target3}`;
+
+    const fetchXMLWithRetry = async (url, retries = 2) => {
+      for (let i = 0; i <= retries; i++) {
+        try {
+          const response = await fetch(url, { 'Content-Type': 'text/xml', headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
+         } });
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return await response.text();
+        } catch (error) {
+          console.error(`Error fetching ${url} (Attempt ${i + 1}):`, error.message);
+          if (i < retries) {
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+          }
+        }
+      }
+      return "<error>Failed to fetch XML data after multiple retries</error>"+apiUrl7; // Return error message after all retries fail
+    };
+
+    const rawXml = await fetchXMLWithRetry(apiUrl7);
+
+
+  const boundary = `boundary`; // Generate a unique boundary
+
+    res.setHeader('Content-Type', `multipart/mixed; boundary="${boundary}"`); // Correct Content-Type
+
+    // Part 1: JSON
+    res.write(`${boundary}\r\n`);
+    res.write(JSON.stringify(combinedData) + '\r\n');    // Important: \r\n
+
+    // Part 2: XML
+    res.write(`${boundary}\r\n`);
+    res.write(rawXml + '\r\n');                       // Important: \r\n
+
+    // End boundary
+    res.write(`${boundary}--\r\n`);
+
+    res.status(200).end(); // Important: res.end() to finish the response
 
   } catch (error) {
     console.error(error);
