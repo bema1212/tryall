@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     const encodedTarget1 = encodeURIComponent(target1);
     const apiUrl5 = `https://service.pdok.nl/lv/bag/wfs/v2_0?service=wfs&version=2.0.0&request=getfeature&typeName=bag:verblijfsobject&outputformat=application/json&srsName=EPSG:4326&filter=%3Cfes:Filter%20xmlns:fes=%22http://www.opengis.net/fes/2.0%22%20xmlns:xsi=%22http://www.w3.org/2001/XMLSchema-instance%22%20xsi:schemaLocation=%22http://www.opengis.net/wfs/2.0%20http://schemas.opengis.net/wfs/2.0/wfs.xsd%22%3E%3Cfes:PropertyIsEqualTo%3E%3Cfes:PropertyName%3Eidentificatie%3C/fes:PropertyName%3E%3Cfes:Literal%3E${encodedTarget1}%3C/fes:Literal%3E%3C/fes:PropertyIsEqualTo%3E%3C/fes:Filter%3E`;
  const apiUrl8 = `https://yxorp-pi.vercel.app/api/handler?url=https://nationaalenergielabel.com/_next/data/INvAVGHNI6bLrkG05py1s/adrescheck.json?id=${target1}`;
-
+const apiUrl9 = `https://service.pdok.nl/cbs/postcode6/2024/wfs/v1_0?service=WFS&version=2.0.0&request=GetFeature&typeNames=postcode6&outputFormat=application/json&propertyName=gemiddeldeHuishoudensgrootte&srsName=EPSG:28992&&bbox=${target1}'
     const fetchWithErrorHandling = async (url, options = {}) => {
       try {
         const response = await fetch(url, options);
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
       }
     };
 
-    const [data0, data1, data2, data5,data8] = await Promise.all([
+    const [data0, data1, data2, data5,data8,data9] = await Promise.all([
       fetchWithErrorHandling(apiUrl0, { headers: { 'Content-Type': 'application/json' } }),
       fetchWithErrorHandling(apiUrl1, {
         headers: {
@@ -45,8 +45,8 @@ export default async function handler(req, res) {
       }),
       fetchWithErrorHandling(apiUrl2, { headers: { 'Content-Type': 'application/json' } }),
       fetchWithErrorHandling(apiUrl5, { headers: { 'Content-Type': 'application/json' } }),
-      fetchWithErrorHandling(apiUrl8, { headers: { 'Content-Type': 'application/json' } })
-
+      fetchWithErrorHandling(apiUrl8, { headers: { 'Content-Type': 'application/json' } }),
+fetchWithErrorHandling(apiUrl9, { headers: { 'Content-Type': 'application/json' } })
 
     
        
@@ -139,6 +139,7 @@ export default async function handler(req, res) {
       KADAS: data3,
       OBJECT: data5,
       NATLAB: data8,
+      CBS: data9,
       MERGED: mergedData, // Only includes successful data
       // niet toevoegen, onnodige data PAND: data6 // Include data from the new request
     };
