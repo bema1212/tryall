@@ -79,7 +79,7 @@ fetchWithErrorHandling(apiUrl9, { headers: { 'Content-Type': 'application/json' 
       const identificatie = feature.properties?.identificatie;
       if (!identificatie) return null;
 
-      const apiUrl = `https://yxorp-pi.vercel.app/api/handler?url=https://public.ep-online.nl/api/v5/PandEnergielabel/AdresseerbaarObject/${identificatie}`;
+      const apiUrl = `https://beter2.vercel.app/api/handler?url=https://public.ep-online.nl/api/v5/PandEnergielabel/AdresseerbaarObject/${identificatie}`;
 
       try {
         const response = await fetch(apiUrl, {
