@@ -9,15 +9,19 @@ export default async function handler(req, res) {
       return res.status(200).end();
     }
 
-    const { target0, target1, target2, target3 } = req.query;
+   // Voeg target4 toe aan de query parameters
+    const { target0, target1, target2, target3, target4 } = req.query;
 
-    if (!target0 || !target1 || !target2 || !target3) {
-      return res.status(400).json({ error: "Both target1 and target2 parameters are required" });
+    if (!target0 || !target1 || !target2 || !target3 || !target4) {
+      return res.status(400).json({ error: "All parameters (target0 t/m target4) are required" });
     }
+
+    // Splits de coördinaten van target4 (formaat verwacht: "lat,lon")
+    const [lat, lon] = target4.split(',').map(coord => parseFloat(coord));
+
 
     const apiUrl0 = `https://api.pdok.nl/bzk/locatieserver/search/v3_1/lookup?id=${target0}`;
     const apiUrl1 = `https://public.ep-online.nl/api/v5/PandEnergielabel/AdresseerbaarObject/${target1}`;
-    const apiUrl2 = `https://opendata.polygonentool.nl/wfs?service=wfs&version=2.0.0&request=getfeature&typename=se:OGC_Warmtevlak,se:OGC_Elektriciteitnetbeheerdervlak,se:OGC_Gasnetbeheerdervlak,se:OGC_Telecomvlak,se:OGC_Waternetbeheerdervlak,se:OGC_Rioleringsvlakken&propertyname=name,disciplineCode&outputformat=application/json&&SRSNAME=urn:ogc:def:crs:EPSG::28992&bbox=${target3}`;
     const encodedTarget1 = encodeURIComponent(target1);
     const apiUrl5 = `https://service.pdok.nl/lv/bag/wfs/v2_0?service=wfs&version=2.0.0&request=getfeature&typeName=bag:verblijfsobject&outputformat=application/json&srsName=EPSG:4326&filter=%3Cfes:Filter%20xmlns:fes=%22http://www.opengis.net/fes/2.0%22%20xmlns:xsi=%22http://www.w3.org/2001/XMLSchema-instance%22%20xsi:schemaLocation=%22http://www.opengis.net/wfs/2.0%20http://schemas.opengis.net/wfs/2.0/wfs.xsd%22%3E%3Cfes:PropertyIsEqualTo%3E%3Cfes:PropertyName%3Eidentificatie%3C/fes:PropertyName%3E%3Cfes:Literal%3E${encodedTarget1}%3C/fes:Literal%3E%3C/fes:PropertyIsEqualTo%3E%3C/fes:Filter%3E`;
  const apiUrl8 = `https://beter2.vercel.app/api/handler?url=https://nationaalenergielabel.com/_next/data/QcCaTC3CYAJm6xKYXek6p/adrescheck.json?id=${target1}`;
@@ -35,6 +39,33 @@ const apiUrl9 = `https://service.pdok.nl/cbs/postcode6/2024/wfs/v1_0?service=WFS
       }
     };
 
+
+    // Aangepaste functie specifiek voor de POST request naar Mijnaansluiting
+    const fetchNetbeheerderData = async () => {
+      try {
+        const response = await fetch("https://services.mijnaansluiting.nl/geo/api/address/netbeheerderdiscipline", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            coordinates: {
+              latitude: lat,
+              longitude: lon
+            }
+          })
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Error fetching netbeheerder data:", error.message);
+        return { error: "error" };
+      }
+    };
+
+    
     const [data0, data1, data2, data5,data8,data9] = await Promise.all([
       fetchWithErrorHandling(apiUrl0, { headers: { 'Content-Type': 'application/json' } }),
       fetchWithErrorHandling(apiUrl1, {
