@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     }
 
     // Splits de coördinaten van target4 (formaat verwacht: "lat,lon")
-    const [lat, lon] = target4.split(',').map(coord => parseFloat(coord));
+    const [lon, lat] = target4.split(',').map(coord => parseFloat(coord));
 
 
     const apiUrl0 = `https://api.pdok.nl/bzk/locatieserver/search/v3_1/lookup?id=${target0}`;
