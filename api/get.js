@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
 
     if (req.method === 'OPTIONS') {
-      return res.status(200).end();
+      return res.status(20).end();
     }
 
    // Voeg target4 toe aan de query parameters
