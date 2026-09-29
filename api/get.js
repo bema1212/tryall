@@ -9,7 +9,7 @@ export default async function handler(req, res) {
       return res.status(200).end();
     }
 
-   // Voeg target4 toe aan de query parameters
+    // Voeg target4 toe aan de query parameters
     const { target0, target1, target2, target3, target4 } = req.query;
 
     if (!target0 || !target1 || !target2 || !target3 || !target4) {
@@ -19,13 +19,13 @@ export default async function handler(req, res) {
     // Splits de coördinaten van target4 (formaat verwacht: "lat,lon")
     const [lon, lat] = target4.split(',').map(coord => parseFloat(coord));
 
-
     const apiUrl0 = `https://api.pdok.nl/bzk/locatieserver/search/v3_1/lookup?id=${target0}`;
     const apiUrl1 = `https://public.ep-online.nl/api/v5/PandEnergielabel/AdresseerbaarObject/${target1}`;
     const encodedTarget1 = encodeURIComponent(target1);
     const apiUrl5 = `https://service.pdok.nl/lv/bag/wfs/v2_0?service=wfs&version=2.0.0&request=getfeature&typeName=bag:verblijfsobject&outputformat=application/json&srsName=EPSG:4326&filter=%3Cfes:Filter%20xmlns:fes=%22http://www.opengis.net/fes/2.0%22%20xmlns:xsi=%22http://www.w3.org/2001/XMLSchema-instance%22%20xsi:schemaLocation=%22http://www.opengis.net/wfs/2.0%20http://schemas.opengis.net/wfs/2.0/wfs.xsd%22%3E%3Cfes:PropertyIsEqualTo%3E%3Cfes:PropertyName%3Eidentificatie%3C/fes:PropertyName%3E%3Cfes:Literal%3E${encodedTarget1}%3C/fes:Literal%3E%3C/fes:PropertyIsEqualTo%3E%3C/fes:Filter%3E`;
- const apiUrl8 = `https://beter2.vercel.app/api/handler?url=https://nationaalenergielabel.com/_next/data/QcCaTC3CYAJm6xKYXek6p/adrescheck.json?id=${target1}`;
-const apiUrl9 = `https://service.pdok.nl/cbs/postcode6/2024/wfs/v1_0?service=WFS&version=2.0.0&request=GetFeature&typeNames=postcode6&outputFormat=application/json&propertyName=gemiddeldeHuishoudensgrootte&srsName=EPSG:28992&&bbox=${target3}`;
+    const apiUrl8 = `https://beter2.vercel.app/api/handler?url=https://nationaalenergielabel.com/_next/data/QcCaTC3CYAJm6xKYXek6p/adrescheck.json?id=${target1}`;
+    const apiUrl9 = `https://service.pdok.nl/cbs/postcode6/2024/wfs/v1_0?service=WFS&version=2.0.0&request=GetFeature&typeNames=postcode6&outputFormat=application/json&propertyName=gemiddeldeHuishoudensgrootte&srsName=EPSG:28992&&bbox=${target3}`;
+
     const fetchWithErrorHandling = async (url, options = {}) => {
       try {
         const response = await fetch(url, options);
@@ -35,10 +35,9 @@ const apiUrl9 = `https://service.pdok.nl/cbs/postcode6/2024/wfs/v1_0?service=WFS
         return await response.json();
       } catch (error) {
         console.error(`Error fetching ${url}:`, error.message);
-        return { error: "error" }; // Return an object with just "error" as the result
+        return { error: "error" };
       }
     };
-
 
     // Aangepaste functie specifiek voor de POST request naar Mijnaansluiting
     const fetchNetbeheerderData = async () => {
@@ -65,8 +64,8 @@ const apiUrl9 = `https://service.pdok.nl/cbs/postcode6/2024/wfs/v1_0?service=WFS
       }
     };
 
-    
-    const [data0, data1, data2, data5,data8,data9] = await Promise.all([
+    // GECORRIGEERD: data2 ontvangt nu het resultaat van de aangeroepen fetchNetbeheerderData() functie
+    const [data0, data1, data2, data5, data8, data9] = await Promise.all([
       fetchWithErrorHandling(apiUrl0, { headers: { 'Content-Type': 'application/json' } }),
       fetchWithErrorHandling(apiUrl1, {
         headers: {
@@ -74,13 +73,10 @@ const apiUrl9 = `https://service.pdok.nl/cbs/postcode6/2024/wfs/v1_0?service=WFS
           'Content-Type': 'application/json',
         }
       }),
-      fetchWithErrorHandling(apiUrl2, { headers: { 'Content-Type': 'application/json' } }),
+      fetchNetbeheerderData(), // <-- HIER GING HET MIS: Nu wordt de functie wél uitgevoerd!
       fetchWithErrorHandling(apiUrl5, { headers: { 'Content-Type': 'application/json' } }),
       fetchWithErrorHandling(apiUrl8, { headers: { 'Content-Type': 'application/json' } }),
-fetchWithErrorHandling(apiUrl9, { headers: { 'Content-Type': 'application/json' } })
-
-    
-       
+      fetchWithErrorHandling(apiUrl9, { headers: { 'Content-Type': 'application/json' } })
     ]);
 
     // Extract coordinates from target2 (assumed to be in format "x,y")
@@ -138,47 +134,44 @@ fetchWithErrorHandling(apiUrl9, { headers: { 'Content-Type': 'application/json' 
       additionalDataMap.set(item.identificatie, item);
     });
 
-   const mergedData = data4Features
-  .map(feature => {
-    const identificatie = feature.properties?.identificatie;
-    const additionalInfo = additionalDataMap.get(identificatie);
-    const pandData = data6.features.find(pand => pand.properties?.identificatie === feature.properties?.pandidentificatie);
+    const mergedData = data4Features
+      .map(feature => {
+        const identificatie = feature.properties?.identificatie;
+        const additionalInfo = additionalDataMap.get(identificatie);
+        const pandData = data6.features.find(pand => pand.properties?.identificatie === feature.properties?.pandidentificatie);
 
-    // Only include the feature if there is no error in the additional data and matching PAND
-    if (!additionalInfo || additionalInfo.error || !pandData) {
-      return null; // Skip this feature if there's an error or no additional data or matching PAND
-    }
-
-    return {
-      ...feature,
-      additionalData: additionalInfo.data, // Only include the successful data
-      additionalData2: [
-        {
-          geometry: pandData.geometry, // Add PAND geometry to additionalData2
+        if (!additionalInfo || additionalInfo.error || !pandData) {
+          return null;
         }
-      ],
-    };
-  })
-  .filter(item => item !== null); // Remove any null (error or missing) entries
 
-   
+        return {
+          ...feature,
+          additionalData: additionalInfo.data,
+          additionalData2: [
+            {
+              geometry: pandData.geometry,
+            }
+          ],
+        };
+      })
+      .filter(item => item !== null);
 
+    // Het gecombineerde eindobject met alle gevulde keys
     const combinedData = {
       LOOKUP: data0,
       EPON: data1,
-      NETB: data2,
+      NETB: data2, // Bevat nu de JSON-array van Mijnaansluiting
       KADAS: data3,
       OBJECT: data5,
       NATLAB: data8,
       CBS: data9,
-      MERGED: mergedData, // Only includes successful data
-      // niet toevoegen, onnodige data PAND: data6 // Include data from the new request
+      MERGED: mergedData
     };
 
+    return res.status(200).json(combinedData);
 
- res.status(200).json(combinedData);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+  } catch (globalError) {
+    console.error("Global crash handler:", globalError.message);
+    return res.status(500).json({ error: globalError.message });
   }
 }
